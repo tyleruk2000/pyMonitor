@@ -64,5 +64,5 @@ def send_image(filename):
 
 if __name__ == '__main__':
     thread.start()
-    run(host='localhost', port=thread.portNo, debug=True)
+    run(host='0.0.0.0', port=thread.portNo, debug=True)
     
