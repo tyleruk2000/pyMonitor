@@ -1,7 +1,8 @@
 '''
 Created on 12 May 2014
 
-@author: tyler
+Copyright (c) 2014, Tyler Allen.
+License: MIT (see http://opensource.org/licenses/MIT
 '''
 import psutil
 import os
