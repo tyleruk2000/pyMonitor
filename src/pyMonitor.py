@@ -24,6 +24,11 @@ memIMG = None
 diskIMG = None
 netIMG = None
 
+rrdLocation = None
+pngLocation = None
+
+portNo = None
+
 #graphHeigh = str(100)
 #graphWidth = str(400)
 
@@ -39,18 +44,20 @@ class Monitor(threading.Thread):
     def setupLocations(self):
         config = ConfigParser.RawConfigParser()
         config.read(configLocation)
-        rrdLocation = str(config.get("pyMonitor","rrdLocation"))
-        pngLocation = str(config.get("pyMonitor","pngLocation"))
-        self.rrdCPULocation = rrdLocation + "pyMonitorCPU.rrd"
-        self.rrdMEMLocation = rrdLocation + "pyMonitorMEM.rrd"
-        self.rrdDISKLocation = rrdLocation + "pyMonitorDISK.rrd"
-        self.rrdNETLocation = rrdLocation + "pyMonitorNET.rrd"
+        self.portNo = config.getint("pyMonitor","port")
         
-        self.cpuIMG = pngLocation + "cpu_"
-        self.loadIMG = pngLocation + "load_"
-        self.memIMG = pngLocation + "mem_"
-        self.diskIMG = pngLocation + "disk_"
-        self.netIMG = pngLocation + "net_"
+        self.rrdLocation = str(config.get("pyMonitor","rrdLocation"))
+        self.pngLocation = str(config.get("pyMonitor","pngLocation"))
+        self.rrdCPULocation = self.rrdLocation + "pyMonitorCPU.rrd"
+        self.rrdMEMLocation = self.rrdLocation + "pyMonitorMEM.rrd"
+        self.rrdDISKLocation = self.rrdLocation + "pyMonitorDISK.rrd"
+        self.rrdNETLocation = self.rrdLocation + "pyMonitorNET.rrd"
+        
+        self.cpuIMG = self.pngLocation + "cpu_"
+        self.loadIMG = self.pngLocation + "load_"
+        self.memIMG = self.pngLocation + "mem_"
+        self.diskIMG = self.pngLocation + "disk_"
+        self.netIMG = self.pngLocation + "net_"
     
     '''
     #######################################################

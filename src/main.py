@@ -2,11 +2,13 @@
 Created on 12 May 2014
 
 Copyright (c) 2014, Tyler Allen.
-License: MIT (see http://opensource.org/licenses/MIT
+License: MIT (see http://opensource.org/licenses/MIT)
 '''
 import psutil
 import os
 import pyMonitor
+
+thread = pyMonitor.Monitor()
 
 def bytes2human(n):
     symbols = ('K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
@@ -51,8 +53,16 @@ def printStats():
     #---------------APACHE---------------
     #Required apache mod_status is installed and enabled
     #https://pythonhosted.org/pyserverstatus/
+    
+from bottle import route, run, static_file
+@route('/')
+def hello():
+    return static_file("monitor.html",root='./')
+@route('/img/<filename:re:.*\.png>')
+def send_image(filename):
+    return static_file(filename, root=thread.pngLocation, mimetype='image/png')
 
 if __name__ == '__main__':
-    thread = pyMonitor.Monitor()
     thread.start()
+    run(host='localhost', port=thread.portNo, debug=True)
     
