@@ -55,4 +55,4 @@ def printStats():
 if __name__ == '__main__':
     thread = pyMonitor.Monitor()
     thread.start()
-    quit()
+    
