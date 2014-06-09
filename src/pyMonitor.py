@@ -9,17 +9,20 @@ import threading
 import time
 import psutil
 import os
+import ConfigParser
 
-rrdCPULocation = "./pyMonitorCPU.rrd"
-rrdMEMLocation = "./pyMonitorMEM.rrd"
-rrdDISKLocation = "./pyMonitorDISK.rrd"
-rrdNETLocation = "./pyMonitorNET.rrd"
+configLocation = "./pyMonitor.cfg"
 
-cpuIMG = "./cpu_"
-loadIMG = "./load_"
-memIMG = "./mem_"
-diskIMG = "./disk_"
-netIMG = "./net_"
+rrdCPULocation = None
+rrdMEMLocation = None
+rrdDISKLocation = None
+rrdNETLocation = None
+
+cpuIMG = None
+loadIMG = None
+memIMG = None
+diskIMG = None
+netIMG = None
 
 #graphHeigh = str(100)
 #graphWidth = str(400)
@@ -29,13 +32,35 @@ class Monitor(threading.Thread):
     
     '''
     #######################################################
+                        Setup location
+                        By reading config
+    #######################################################
+    ''' 
+    def setupLocations(self):
+        config = ConfigParser.RawConfigParser()
+        config.read(configLocation)
+        rrdLocation = str(config.get("pyMonitor","rrdLocation"))
+        pngLocation = str(config.get("pyMonitor","pngLocation"))
+        self.rrdCPULocation = rrdLocation + "pyMonitorCPU.rrd"
+        self.rrdMEMLocation = rrdLocation + "pyMonitorMEM.rrd"
+        self.rrdDISKLocation = rrdLocation + "pyMonitorDISK.rrd"
+        self.rrdNETLocation = rrdLocation + "pyMonitorNET.rrd"
+        
+        self.cpuIMG = pngLocation + "cpu_"
+        self.loadIMG = pngLocation + "load_"
+        self.memIMG = pngLocation + "mem_"
+        self.diskIMG = pngLocation + "disk_"
+        self.netIMG = pngLocation + "net_"
+    
+    '''
+    #######################################################
                         Setup RRD's
     #######################################################
     '''  
     def setupRRD(self):
-        if not (os.path.isfile(rrdCPULocation)):
+        if not (os.path.isfile(self.rrdCPULocation)):
             print "Creating CPU RRD file"
-            os.system("rrdtool create " + rrdCPULocation + " \
+            os.system("rrdtool create " + self.rrdCPULocation + " \
             --step 60 \
             DS:cpu:GAUGE:120:0:100 \
             DS:load:GAUGE:120:0:U \
@@ -46,9 +71,9 @@ class Monitor(threading.Thread):
             #5 min for 1 month
             #1 hour for 1 years
 
-        if not (os.path.isfile(rrdMEMLocation)):
+        if not (os.path.isfile(self.rrdMEMLocation)):
             print "Creating MEM RRD file"
-            os.system("rrdtool create " + rrdMEMLocation + " \
+            os.system("rrdtool create " + self.rrdMEMLocation + " \
             --step 60 \
             DS:avaliable:GAUGE:120:U:U \
             DS:total:GAUGE:120:U:U \
@@ -60,11 +85,11 @@ class Monitor(threading.Thread):
             DS:cached:GAUGE:120:U:U \
             RRA:AVERAGE:0.5:1:10080 \
             RRA:AVERAGE:0.5:5:8765 \
-	    RRA:AVERAGE:0.5:60:8765")
+	        RRA:AVERAGE:0.5:60:8765")
 
-        if not (os.path.isfile(rrdDISKLocation)):
-            print "Creating MEM RRD file"
-            os.system("rrdtool create " + rrdDISKLocation + " \
+        if not (os.path.isfile(self.rrdDISKLocation)):
+            print "Creating Disk RRD file"
+            os.system("rrdtool create " + self.rrdDISKLocation + " \
             --step 60 \
             DS:total:GAUGE:120:U:U \
             DS:used:GAUGE:120:U:U \
@@ -72,17 +97,17 @@ class Monitor(threading.Thread):
             DS:percent:GAUGE:120:0:100 \
             RRA:AVERAGE:0.5:1:10080 \
             RRA:AVERAGE:0.5:5:8765 \
-	    RRA:AVERAGE:0.5:60:8765")
+	        RRA:AVERAGE:0.5:60:8765")
         
-        if not (os.path.isfile(rrdNETLocation)):
-            print "Creating MEM RRD file"
-            os.system("rrdtool create " + rrdNETLocation + " \
+        if not (os.path.isfile(self.rrdNETLocation)):
+            print "Creating NET RRD file"
+            os.system("rrdtool create " + self.rrdNETLocation + " \
             --step 60 \
             DS:sent:COUNTER:120:U:U \
             DS:recv:COUNTER:120:U:U \
             RRA:AVERAGE:0.5:1:10080 \
             RRA:AVERAGE:0.5:5:8765 \
-	    RRA:AVERAGE:0.5:60:8765")
+	        RRA:AVERAGE:0.5:60:8765")
     
     '''
     #######################################################
@@ -91,19 +116,19 @@ class Monitor(threading.Thread):
     '''  
     def updateRRD(self):
         #---------------CPU---------------
-        os.system("rrdtool update " + rrdCPULocation + " N:" + str(psutil.cpu_percent(interval=0.1)) + ":" + str(os.getloadavg()[0]))
+        os.system("rrdtool update " + self.rrdCPULocation + " N:" + str(psutil.cpu_percent(interval=0.1)) + ":" + str(os.getloadavg()[0]))
         
         #---------------MEM---------------
         mem = psutil.virtual_memory()
-        os.system("rrdtool update " + rrdMEMLocation + " N:" + str(float(mem.available)) + ":" + str(float(mem.total)) + ":" + str(float(mem.free)) + ":" + str(float(mem.used)) + ":" + str(float(mem.active)) + ":" + str(float(mem.inactive)) + ":" + str(float(mem.buffers)) + ":" + str(float(mem.cached)))
+        os.system("rrdtool update " + self.rrdMEMLocation + " N:" + str(float(mem.available)) + ":" + str(float(mem.total)) + ":" + str(float(mem.free)) + ":" + str(float(mem.used)) + ":" + str(float(mem.active)) + ":" + str(float(mem.inactive)) + ":" + str(float(mem.buffers)) + ":" + str(float(mem.cached)))
         
         #---------------DISK---------------
         disk = psutil.disk_usage('/')
-        os.system("rrdtool update " + rrdDISKLocation + " N:" + str(disk.total) + ":" + str(disk.used) + ":" + str(disk.free) + ":" + str(disk.percent))
+        os.system("rrdtool update " + self.rrdDISKLocation + " N:" + str(disk.total) + ":" + str(disk.used) + ":" + str(disk.free) + ":" + str(disk.percent))
 
         #---------------NET---------------
         net = psutil.net_io_counters()
-        os.system("rrdtool update " + rrdNETLocation + " N:" + str(net.bytes_sent) + ":" + str(net.bytes_recv))
+        os.system("rrdtool update " + self.rrdNETLocation + " N:" + str(net.bytes_sent) + ":" + str(net.bytes_recv))
     
     '''
     #######################################################
@@ -112,33 +137,33 @@ class Monitor(threading.Thread):
     '''  
     def drawGraph(self,graphHeigh,graphWidth,postfix,start):
         #---------------CPU---------------
-        os.system("rrdtool graph " + cpuIMG + postfix + ".png \
+        os.system("rrdtool graph " + self.cpuIMG + postfix + ".png \
         --title 'CPU %' \
-        DEF:cpu=" + rrdCPULocation + ":cpu:AVERAGE \
+        DEF:cpu=" + self.rrdCPULocation + ":cpu:AVERAGE \
         AREA:cpu#8FBE00:'CPU %' \
         --start now-" + start + " \
         -w " + graphWidth + " \
         -h " + graphHeigh)
         
-        os.system("rrdtool graph " + loadIMG + postfix + ".png \
+        os.system("rrdtool graph " + self.loadIMG + postfix + ".png \
         --title 'Load AVG' \
-        DEF:load=" + rrdCPULocation + ":load:AVERAGE \
+        DEF:load=" + self.rrdCPULocation + ":load:AVERAGE \
         AREA:load#40C0CB:'Load AVG' \
         --start now-" + start + " \
         -w " + graphWidth + " \
         -h " + graphHeigh)
         
         #---------------MEM---------------
-        os.system("rrdtool graph " + memIMG + postfix + ".png \
+        os.system("rrdtool graph " + self.memIMG + postfix + ".png \
         --title 'Memory Usage' \
-        DEF:avaliable=" + rrdMEMLocation + ":avaliable:AVERAGE \
-        DEF:total=" + rrdMEMLocation + ":total:AVERAGE \
-        DEF:free=" + rrdMEMLocation + ":free:AVERAGE \
-        DEF:used=" + rrdMEMLocation + ":used:AVERAGE \
-        DEF:active=" + rrdMEMLocation + ":active:AVERAGE \
-        DEF:inactive=" + rrdMEMLocation + ":inactive:AVERAGE \
-        DEF:buffers=" + rrdMEMLocation + ":buffers:AVERAGE \
-        DEF:cached=" + rrdMEMLocation + ":cached:AVERAGE \
+        DEF:avaliable=" + self.rrdMEMLocation + ":avaliable:AVERAGE \
+        DEF:total=" + self.rrdMEMLocation + ":total:AVERAGE \
+        DEF:free=" + self.rrdMEMLocation + ":free:AVERAGE \
+        DEF:used=" + self.rrdMEMLocation + ":used:AVERAGE \
+        DEF:active=" + self.rrdMEMLocation + ":active:AVERAGE \
+        DEF:inactive=" + self.rrdMEMLocation + ":inactive:AVERAGE \
+        DEF:buffers=" + self.rrdMEMLocation + ":buffers:AVERAGE \
+        DEF:cached=" + self.rrdMEMLocation + ":cached:AVERAGE \
         AREA:total#00A8C6:'Total' \
         AREA:used#8FBE00:'Used' \
         AREA:active#AEE239:'Active' \
@@ -148,10 +173,10 @@ class Monitor(threading.Thread):
         -h " + graphHeigh)
         
         #---------------DISK---------------
-        os.system("rrdtool graph " + diskIMG + postfix + ".png \
+        os.system("rrdtool graph " + self.diskIMG + postfix + ".png \
         --title 'Disk Usage' \
-        DEF:total=" + rrdDISKLocation + ":total:AVERAGE \
-        DEF:used=" + rrdDISKLocation + ":used:AVERAGE \
+        DEF:total=" + self.rrdDISKLocation + ":total:AVERAGE \
+        DEF:used=" + self.rrdDISKLocation + ":used:AVERAGE \
         AREA:total#00A8C6:'Total' \
         AREA:used#AEE239:'used' \
         --lower-limit 0 \
@@ -160,10 +185,10 @@ class Monitor(threading.Thread):
         -h " + graphHeigh)
         
         #---------------NET---------------
-        os.system("rrdtool graph " + netIMG + postfix + ".png \
+        os.system("rrdtool graph " + self.netIMG + postfix + ".png \
         --title 'Network Stats' \
-        DEF:sent=" + rrdNETLocation + ":sent:AVERAGE \
-        DEF:recv=" + rrdNETLocation + ":recv:AVERAGE \
+        DEF:sent=" + self.rrdNETLocation + ":sent:AVERAGE \
+        DEF:recv=" + self.rrdNETLocation + ":recv:AVERAGE \
         LINE:sent#00A8C6:'Sent' \
         LINE:recv#AEE239:'recv' \
         --start now-" + start + " \
@@ -173,6 +198,7 @@ class Monitor(threading.Thread):
     
     def __init__(self):
         super(Monitor,self).__init__()
+        self.setupLocations()
         self.setupRRD()
     
     def run(self):
