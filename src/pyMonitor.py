@@ -30,6 +30,8 @@ pngLocation = None
 portNo = None
 host = None
 
+logLocation = None
+
 #graphHeigh = str(100)
 #graphWidth = str(400)
 
@@ -45,7 +47,9 @@ class Monitor(threading.Thread):
     def setupLocations(self):
         config = ConfigParser.RawConfigParser()
         config.read(configLocation)
-        
+
+	self.logLocation = str(config.get("pyMonitor","logLocation"))        
+
         self.portNo = config.getint("pyMonitor","port")
         self.host = str(config.get("pyMonitor","host"))
 
