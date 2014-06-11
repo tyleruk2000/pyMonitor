@@ -219,7 +219,8 @@ class Monitor(threading.Thread):
         self.drawGraph(str(100),str(400),"sml","1d")
         self.drawGraph(str(800),str(1800),"lrg","1d")
         self.drawGraph(str(100),str(400),"30d","30d")
-        
+        self.drawGraph(str(800),str(1800),"30d_lrg","30d")
+
         count = 0 #used for 10 min timer
         count1 = 0 #used for 60 min timer
         
@@ -237,6 +238,7 @@ class Monitor(threading.Thread):
                 #every 60 mins darw large and 1 month graph
                 self.drawGraph(str(800),str(1800),"lrg","1d")
                 self.drawGraph(str(100),str(400),"30d","30d")
-                count1 = 0
+                self.drawGraph(str(800),str(1800),"30d_lrg","30d")
+		count1 = 0
                 
             time.sleep(30)
