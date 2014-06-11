@@ -48,7 +48,7 @@ class Monitor(threading.Thread):
         config = ConfigParser.RawConfigParser()
         config.read(configLocation)
 
-	self.logLocation = str(config.get("pyMonitor","logLocation"))        
+        self.logLocation = str(config.get("pyMonitor","logLocation"))        
 
         self.portNo = config.getint("pyMonitor","port")
         self.host = str(config.get("pyMonitor","host"))
@@ -179,12 +179,12 @@ class Monitor(threading.Thread):
         DEF:buffers=" + self.rrdMEMLocation + ":buffers:AVERAGE \
         DEF:cached=" + self.rrdMEMLocation + ":cached:AVERAGE \
         CDEF:cacheCombined=cached,active,+ \
-	CDEF:buffersCombined=cacheCombined,buffers,+ \
-	AREA:total#00A8C6:'Total' \
+	    CDEF:buffersCombined=cacheCombined,buffers,+ \
+        AREA:total#00A8C6:'Total' \
         AREA:used#8FBE00:'Used' \
         AREA:buffersCombined#E8970C:'Buffers' \
-	AREA:cacheCombined#AEE239:'Cached' \
-	AREA:active#40C0CB:'Active' \
+        AREA:cacheCombined#AEE239:'Cached' \
+        AREA:active#40C0CB:'Active' \
         --start now-" + start + " \
         -w " + graphWidth + " \
         -h " + graphHeigh)
@@ -211,8 +211,15 @@ class Monitor(threading.Thread):
         --start now-" + start + " \
         -w " + graphWidth + " \
         -h " + graphHeigh)
+        
+    def drawSmallGraph(self):
+        self.drawGraph(str(100),str(400),"sml","1d")
     
-    
+    def drawLrgGraphs(self):
+        self.drawGraph(str(800),str(1800),"lrg","1d")
+        self.drawGraph(str(100),str(400),"30d","30d")
+        self.drawGraph(str(800),str(1800),"30d_lrg","30d")
+                
     def __init__(self):
         super(Monitor,self).__init__()
         self.setupLocations()
@@ -225,24 +232,16 @@ class Monitor(threading.Thread):
         self.drawGraph(str(100),str(400),"30d","30d")
         self.drawGraph(str(800),str(1800),"30d_lrg","30d")
 
-        count = 0 #used for 10 min timer
-        count1 = 0 #used for 60 min timer
+        count = 0 #used timer
         
         #Begin main loon
         while (True):
             self.updateRRD()
             
             count = count + 1
-            count1 = count1 + 1
-            if (count > 9):
-                #every 5 mins re-draw graph
-                self.drawGraph(str(100),str(400),"sml","1d")
-                count = 0
-            if (count1 > 60):
+            if (count > 60):
                 #every 60 mins darw large and 1 month graph
-                self.drawGraph(str(800),str(1800),"lrg","1d")
-                self.drawGraph(str(100),str(400),"30d","30d")
-                self.drawGraph(str(800),str(1800),"30d_lrg","30d")
-		count1 = 0
+                self.drawLrgGraphs()
+                count = 0
                 
             time.sleep(30)
