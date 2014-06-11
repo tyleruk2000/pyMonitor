@@ -49,20 +49,17 @@ def printStats():
     net = psutil.net_io_counters()
     print "Sent: \t\t" + str(net.bytes_sent)
     print "Recv: \t\t" + str(net.bytes_recv)
-
-    #---------------APACHE---------------
-    #Required apache mod_status is installed and enabled
-    #https://pythonhosted.org/pyserverstatus/
     
-from bottle import route, run, static_file
+from bottle import route, run, static_file,request
 @route('/')
 def hello():
     return static_file("monitor.html",root='./')
+
 @route('/img/<filename:re:.*\.png>')
 def send_image(filename):
     return static_file(filename, root=thread.pngLocation, mimetype='image/png')
 
 if __name__ == '__main__':
     thread.start()
-    run(host='0.0.0.0', port=thread.portNo, debug=True)
+    run(host=thread.host, port=thread.portNo, debug=True)
     

@@ -28,6 +28,7 @@ rrdLocation = None
 pngLocation = None
 
 portNo = None
+host = None
 
 #graphHeigh = str(100)
 #graphWidth = str(400)
@@ -44,8 +45,10 @@ class Monitor(threading.Thread):
     def setupLocations(self):
         config = ConfigParser.RawConfigParser()
         config.read(configLocation)
-        self.portNo = config.getint("pyMonitor","port")
         
+        self.portNo = config.getint("pyMonitor","port")
+        self.host = str(config.get("pyMonitor","host"))
+
         self.rrdLocation = str(config.get("pyMonitor","rrdLocation"))
         self.pngLocation = str(config.get("pyMonitor","pngLocation"))
         self.rrdCPULocation = self.rrdLocation + "pyMonitorCPU.rrd"
@@ -171,10 +174,13 @@ class Monitor(threading.Thread):
         DEF:inactive=" + self.rrdMEMLocation + ":inactive:AVERAGE \
         DEF:buffers=" + self.rrdMEMLocation + ":buffers:AVERAGE \
         DEF:cached=" + self.rrdMEMLocation + ":cached:AVERAGE \
-        AREA:total#00A8C6:'Total' \
+        CDEF:cacheCombined=cached,active,+ \
+	CDEF:buffersCombined=cacheCombined,buffers,+ \
+	AREA:total#00A8C6:'Total' \
         AREA:used#8FBE00:'Used' \
-        AREA:active#AEE239:'Active' \
-        AREA:cached#40C0CB:'Cached' \
+        AREA:buffersCombined#E8970C:'Buffers' \
+	AREA:cacheCombined#AEE239:'Cached' \
+	AREA:active#40C0CB:'Active' \
         --start now-" + start + " \
         -w " + graphWidth + " \
         -h " + graphHeigh)
