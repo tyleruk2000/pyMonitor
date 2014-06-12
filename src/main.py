@@ -15,7 +15,7 @@ from bottle import route, run, static_file,request
 def hello():
     logging.info(' ' + str(datetime.datetime.now()) + ' Root Loaded By ' + request.remote_addr)
     thread.drawSmallGraph()
-    return static_file("monitor.html",root='./')
+    return static_file(thread.htmlLocation + "monitor.html",root='./')
 
 @route('/img/<filename:re:.*\.png>')
 def send_image(filename):

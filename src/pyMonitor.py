@@ -31,6 +31,7 @@ portNo = None
 host = None
 
 logLocation = None
+htmlLocation = None
 
 #graphHeigh = str(100)
 #graphWidth = str(400)
@@ -49,6 +50,7 @@ class Monitor(threading.Thread):
         config.read(configLocation)
 
         self.logLocation = str(config.get("pyMonitor","logLocation"))        
+	self.htmlLocation = str(config.get("pyMonitor","htmlLocation"))	
 
         self.portNo = config.getint("pyMonitor","port")
         self.host = str(config.get("pyMonitor","host"))
@@ -244,4 +246,4 @@ class Monitor(threading.Thread):
                 self.drawLrgGraphs()
                 count = 0
                 
-            time.sleep(30)
+            time.sleep(60)
